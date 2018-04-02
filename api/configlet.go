@@ -214,13 +214,14 @@ func (c CvpRestAPI) DeleteConfiglet(name string, key string) error {
 }
 
 // UpdateConfiglet updates a configlet.
-func (c CvpRestAPI) UpdateConfiglet(config string, name string, key string) error {
+func (c CvpRestAPI) UpdateConfiglet(config, name, key string, waitForTasks bool) error {
 	var info ErrorResponse
 
 	data := map[string]string{
 		"config": config,
 		"key":    key,
-		"name":   name,
+        "name":   name,
+        "waitForTaskIds": waitForTasks,
 	}
 
 	resp, err := c.client.Post("/configlet/updateConfiglet.do", nil, data)
