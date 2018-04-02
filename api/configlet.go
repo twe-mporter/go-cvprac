@@ -221,7 +221,7 @@ func (c CvpRestAPI) UpdateConfiglet(config, name, key string, waitForTasks bool)
 		"config": config,
 		"key":    key,
         "name":   name,
-        "waitForTaskIds": waitForTasks,
+        "waitForTaskIds": strconv.FormatBool(waitForTasks),
 	}
 
 	resp, err := c.client.Post("/configlet/updateConfiglet.do", nil, data)
