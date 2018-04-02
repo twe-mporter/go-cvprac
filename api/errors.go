@@ -39,6 +39,7 @@ type ErrorResponse struct {
 	ErrorMessage string `json:"errorMessage"`
 }
 
+
 // Error returns error
 func (e *ErrorResponse) Error() error {
 	if e.ErrorCode != "" || e.ErrorMessage != "" {

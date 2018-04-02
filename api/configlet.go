@@ -67,6 +67,12 @@ type Configlet struct {
 	ErrorResponse
 }
 
+type UpdateResponse struct {
+    Data    string  `json:"data"`
+    TaskIDs []string    `json:"taskIds"`
+    ErrorResponse
+}
+
 func (c Configlet) String() string {
 	return c.Name
 }
@@ -214,30 +220,45 @@ func (c CvpRestAPI) DeleteConfiglet(name string, key string) error {
 }
 
 // UpdateConfiglet updates a configlet.
-func (c CvpRestAPI) UpdateConfiglet(config, name, key string, waitForTasks bool) error {
-	var info ErrorResponse
+func (c CvpRestAPI) UpdateConfiglet(config, name, key string, waitForTasks bool) ([]string, error) {
 
-	data := map[string]string{
-		"config": config,
-		"key":    key,
-        "name":   name,
-        "waitForTaskIds": strconv.FormatBool(waitForTasks),
-	}
+    var info UpdateResponse
 
-	resp, err := c.client.Post("/configlet/updateConfiglet.do", nil, data)
+    data := struct {
+        Config          string  `json:"config"`
+        Key             string  `json:"key"`
+        Name            string  `json:"name"`
+        WaitForTaskIDs  bool    `json:"waitForTaskIds"`
+    }{
+        Config: config,
+        Key:    key,
+        Name:   name,
+        WaitForTaskIDs: waitForTasks,
+    }
+
+    jsonData, jsonErr := json.Marshal(data)
+
+    if jsonErr != nil {
+        return nil, errors.Errorf("UpdateConfiglet: %s", jsonErr)
+    }
+
+	resp, err := c.client.Post("/configlet/updateConfiglet.do", nil, jsonData)
+
+
 	if err != nil {
-		return errors.Errorf("UpdateConfiglet: %s", err)
+		return nil, errors.Errorf("UpdateConfiglet: %s", err)
 	}
 
 	if err = json.Unmarshal(resp, &info); err != nil {
-		return errors.Errorf("UpdateConfiglet: %s", err)
+		return nil, errors.Errorf("UpdateConfiglet: %s", err)
 	}
+
 
 	if err := info.Error(); err != nil {
-		return errors.Errorf("UpdateConfiglet: %s", err)
+		return nil, errors.Errorf("UpdateConfiglet: %s", err)
 	}
 
-	return nil
+	return info.TaskIDs, nil
 }
 
 // SearchConfigletsWithRange search function for configlets.
