@@ -67,11 +67,7 @@ type Configlet struct {
 	ErrorResponse
 }
 
-type UpdateResponse struct {
-    Data    string  `json:"data"`
-    TaskIDs []string    `json:"taskIds"`
-    ErrorResponse
-}
+
 
 func (c Configlet) String() string {
 	return c.Name
@@ -106,6 +102,13 @@ type ConfigletOpReturn struct {
 	Data Configlet `json:"data"`
 
 	ErrorResponse
+}
+
+// UpdateResponse is a custom response type for synchronous UpdateConfiglet
+type UpdateReturn struct {
+    Data    		string 		`json:"data"`
+    TaskIDs 		[]string   	`json:"taskIds"`
+    ErrorResponse
 }
 
 // GetConfigletByName returns the configlet with the specified name
@@ -219,10 +222,12 @@ func (c CvpRestAPI) DeleteConfiglet(name string, key string) error {
 	return nil
 }
 
-// UpdateConfiglet updates a configlet.
-func (c CvpRestAPI) UpdateConfiglet(config, name, key string, waitForTasks bool) ([]string, error) {
+// UpdateConfiglet updates a configlet. This is the synchronous version that waits
+// for any tasks to be created and returns those task IDs.
+func (c CvpRestAPI) UpdateConfiglet(config, name, key string) ([]string, error) {
 
-    var info UpdateResponse
+	// Response includes task information
+    var info UpdateReturn
 
     data := struct {
         Config          string  `json:"config"`
@@ -233,7 +238,7 @@ func (c CvpRestAPI) UpdateConfiglet(config, name, key string, waitForTasks bool)
         Config: config,
         Key:    key,
         Name:   name,
-        WaitForTaskIDs: waitForTasks,
+        WaitForTaskIDs: true,
     }
 
     jsonData, jsonErr := json.Marshal(data)
@@ -244,7 +249,6 @@ func (c CvpRestAPI) UpdateConfiglet(config, name, key string, waitForTasks bool)
 
 	resp, err := c.client.Post("/configlet/updateConfiglet.do", nil, jsonData)
 
-
 	if err != nil {
 		return nil, errors.Errorf("UpdateConfiglet: %s", err)
 	}
@@ -253,13 +257,42 @@ func (c CvpRestAPI) UpdateConfiglet(config, name, key string, waitForTasks bool)
 		return nil, errors.Errorf("UpdateConfiglet: %s", err)
 	}
 
-
 	if err := info.Error(); err != nil {
 		return nil, errors.Errorf("UpdateConfiglet: %s", err)
 	}
 
 	return info.TaskIDs, nil
 }
+
+
+// UpdateConfigletAsync updates a configlet. This is the asynchronous version and does not 
+// wait for any tasks to be created to return them. 
+func (c CvpRestAPI) UpdateConfigletAsync(config string, name string, key string) error {
+	var info ErrorResponse
+
+	data := map[string]string{
+		"config": config,
+		"key":    key,
+		"name":   name,
+	}
+
+	resp, err := c.client.Post("/configlet/updateConfiglet.do", nil, data)
+	if err != nil {
+		return errors.Errorf("UpdateConfiglet: %s", err)
+	}
+
+	if err = json.Unmarshal(resp, &info); err != nil {
+		return errors.Errorf("UpdateConfiglet: %s", err)
+	}
+
+	if err := info.Error(); err != nil {
+		return errors.Errorf("UpdateConfiglet: %s", err)
+	}
+
+	return nil
+}
+
+
 
 // SearchConfigletsWithRange search function for configlets.
 func (c CvpRestAPI) SearchConfigletsWithRange(searchStr string, start int,
