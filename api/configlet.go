@@ -54,7 +54,7 @@ type Device struct {
     AppliedDate         int64   `json:"appliedDate"`
     ContainerName       string  `json:"containerName"`
     HostName            string  `json:"hostName"`
-    TotalDevicesCount   string  `json:"totalDevicesCount"`
+    TotalDevicesCount   int     `json:"totalDevicesCount"`
 
 }
 
