@@ -55,6 +55,8 @@ type Device struct {
     ContainerName       string  `json:"containerName"`
     HostName            string  `json:"hostName"`
     TotalDevicesCount   string  `json:"totalDevicesCount"`
+
+    ErrorResponse
 }
 
 type DeviceList struct {
@@ -320,7 +322,7 @@ func (c CvpRestAPI) GetAppliedDevices(name string) (*DeviceList, error) {
 		"endIndex":    {0},
     }
 
-	resp, err := c.client.Get("/configlet/getAppliedDevices.do", nil, query)
+	resp, err := c.client.Get("/configlet/getAppliedDevices.do", query)
 
     if err != nil {
         return nil, errors.Errorf("GetAppliedDevices: %s", err)
