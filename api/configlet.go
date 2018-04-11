@@ -56,13 +56,13 @@ type Device struct {
     HostName            string  `json:"hostName"`
     TotalDevicesCount   string  `json:"totalDevicesCount"`
 
-    ErrorResponse
 }
 
 type DeviceList struct {
     Total   int         `json:"total"`
     Data    []Device    `json:"data"`
 
+    ErrorResponse
 }
 
 // Configlet represents a Configlet
@@ -318,8 +318,8 @@ func (c CvpRestAPI) GetAppliedDevices(name string) (*DeviceList, error) {
 	query := &url.Values{
 		"configletName": {name},
 		"queryparam":  {""},
-		"startIndex":  {0},
-		"endIndex":    {0},
+		"startIndex":  {strconv.Itoa(0)},
+		"endIndex":    {strconv.Itoa(0)},
     }
 
 	resp, err := c.client.Get("/configlet/getAppliedDevices.do", query)
