@@ -47,6 +47,22 @@ type ConfigletList struct {
 	ErrorResponse
 }
 
+// Custom structs for GetAppliedDevices()
+type Device struct {
+    IPAddress           string  `json:"ipAddress"`
+    AppliedBy           string  `json:"appliedBy"`
+    AppliedDate         int64   `json:"appliedDate"`
+    ContainerName       string  `json:"containerName"`
+    HostName            string  `json:"hostName"`
+    TotalDevicesCount   string  `json:"totalDevicesCount"`
+}
+
+type DeviceList struct {
+    Total   int         `json:"total"`
+    Data    []Device    `json:"data"`
+
+}
+
 // Configlet represents a Configlet
 type Configlet struct {
 	IsDefault            string `json:"isDefault"`
@@ -106,8 +122,8 @@ type ConfigletOpReturn struct {
 
 // UpdateResponse is a custom response type for synchronous UpdateConfiglet
 type UpdateReturn struct {
-    Data    		string 		`json:"data"`
-    TaskIDs 		[]string   	`json:"taskIds"`
+    Data		    string		`json:"data"`
+    TaskIDs 		[]string	`json:"taskIds"`
     ErrorResponse
 }
 
@@ -290,6 +306,36 @@ func (c CvpRestAPI) UpdateConfigletAsync(config string, name string, key string)
 	}
 
 	return nil
+}
+
+
+func (c CvpRestAPI) GetAppliedDevices(name string) (*DeviceList, error) {
+
+    var info DeviceList
+
+	query := &url.Values{
+		"configletName": {name},
+		"queryparam":  {""},
+		"startIndex":  {0},
+		"endIndex":    {0},
+    }
+
+	resp, err := c.client.Get("/configlet/getAppliedDevices.do", nil, query)
+
+    if err != nil {
+        return nil, errors.Errorf("GetAppliedDevices: %s", err)
+    }
+
+    if err = json.Unmarshal(resp, &info); err != nil {
+        return nil, errors.Errorf("GetAppliedDevices: %s", err)
+    }
+
+    if err := info.Error(); err != nil {
+        return nil, errors.Errorf("GetAppliedDevices: %s", err)
+    }
+
+    return &info, nil
+
 }
 
 
