@@ -86,6 +86,21 @@ type Configlet struct {
 	ErrorResponse
 }
 
+type ConfigValidation struct {
+    Warnings        []string            `json:"warnings"`
+    Errors          []ValidationError   `json:"errors"`
+    ErrorCount      int                 `json:"errorCount"`
+    WarningCount    int                 `json:"warningCount"`
+
+    ErrorResponse
+}
+
+type ValidationError struct {
+    LineNumber  string  `json:"lineNo"`
+    Error       string  `json:"error"`
+}
+
+
 
 
 func (c Configlet) String() string {
@@ -313,7 +328,9 @@ func (c CvpRestAPI) UpdateConfigletAsync(config string, name string, key string)
 }
 
 
-func (c CvpRestAPI) ValidateConfig(serialNumber, configlet string) {
+func (c CvpRestAPI) ValidateConfig(serialNumber, configlet string) (*ConfigValidation, error) {
+
+    var info ConfigValidation
 
     data := map[string]string{
         "config": configlet,
@@ -323,14 +340,18 @@ func (c CvpRestAPI) ValidateConfig(serialNumber, configlet string) {
     resp, err := c.client.Post("/configlet/validateConfig.do", nil, data)
 
     if err != nil {
-        fmt.Println(err)
-        //return errors.Errorf("ValidateConfig: %s", err)
+        return nil, errors.Errorf("ValidateConfig: %s", err)
     }
 
+	if err = json.Unmarshal(resp, &info); err != nil {
+		return nil, errors.Errorf("ValidateConfig: %s", err)
+	}
 
-    fmt.Println(string(resp))
+	if err := info.Error(); err != nil {
+		return nil, errors.Errorf("ValidateConfig: %s", err)
+	}
 
-
+    return &info, nil
 
 }
 
