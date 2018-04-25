@@ -32,7 +32,6 @@
 package cvpapi
 
 import (
-    "fmt"
 	"encoding/json"
 	"net/url"
 	"strconv"
