@@ -32,6 +32,7 @@
 package cvpapi
 
 import (
+    "fmt"
 	"encoding/json"
 	"net/url"
 	"strconv"
@@ -295,6 +296,7 @@ func (c CvpRestAPI) UpdateConfigletAsync(config string, name string, key string)
 	}
 
 	resp, err := c.client.Post("/configlet/updateConfiglet.do", nil, data)
+
 	if err != nil {
 		return errors.Errorf("UpdateConfiglet: %s", err)
 	}
@@ -308,6 +310,28 @@ func (c CvpRestAPI) UpdateConfigletAsync(config string, name string, key string)
 	}
 
 	return nil
+}
+
+
+func (c CvpRestAPI) ValidateConfig(serialNumber, configlet string) {
+
+    data := map[string]string{
+        "config": configlet,
+        "netElementId": serialNumber,
+    }
+
+    resp, err := c.client.Post("/configlet/validateConfig.do", nil, data)
+
+    if err != nil {
+        fmt.Println(err)
+        //return errors.Errorf("ValidateConfig: %s", err)
+    }
+
+
+    fmt.Println(string(resp))
+
+
+
 }
 
 
